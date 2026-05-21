@@ -21,10 +21,6 @@ GEO_CITY_URL = "https://raw.githubusercontent.com/P3TERX/GeoLite.mmdb/download/g
 GEO_ASN_URL = "https://raw.githubusercontent.com/P3TERX/GeoLite.mmdb/download/geoip/GeoLite2-ASN.mmdb"
 MAX_WORKERS = 30 
 
-# GitHub Repo Info
-GITHUB_USER = "YourUsername" 
-GITHUB_REPO = "YourRepoName"
-
 # ================= Security Lock =================
 EXPECTED_SECRET = "ZX_PROMPT_ADMIN_2026"
 
@@ -186,7 +182,9 @@ def save_to_file(filepath, lines, to_base64=False):
 
 def generate_readme(total_configs, by_protocol):
     now = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
-    github_repo_env = os.environ.get('GITHUB_REPOSITORY', f'{GITHUB_USER}/{GITHUB_REPO}')
+    
+    # دریافت خودکار Username/Repo از محیط گیت‌هاب (اگر محلی اجرا شود، لینک پیش‌فرض می‌گذارد)
+    github_repo_env = os.environ.get('GITHUB_REPOSITORY', 'YourUsername/YourRepo')
     base_raw_url = f"https://raw.githubusercontent.com/{github_repo_env}/main/{OUTPUT_DIR}"
     
     stats_md = "\n".join([f"- **{proto.capitalize()}**: {len(links)}" for proto, links in by_protocol.items()])
@@ -275,7 +273,7 @@ def main():
 
     # 3. تفکیک دیتاسنتر
     for dc, links in by_datacenter.items():
-        if dc: # جلوگیری از نام خالی
+        if dc:
             save_to_file(f"{OUTPUT_DIR}/normal/Datacenter/{dc}", links)
             save_to_file(f"{OUTPUT_DIR}/base64/Datacenter/{dc}", links, to_base64=True)
 
