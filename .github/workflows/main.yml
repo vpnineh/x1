@@ -1,0 +1,54 @@
+name: ZX Config Processor
+
+on:
+  schedule:
+    - cron: '0 * * * *'
+  workflow_dispatch:
+
+jobs:
+  build-and-process:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Get Week Number
+        id: date
+        run: echo "week=$(date +'%Y-%U')" >> $GITHUB_ENV
+
+      - name: Cache Geo Databases
+        uses: actions/cache@v3
+        with:
+          path: |
+            GeoLite2-City.mmdb
+            GeoLite2-ASN.mmdb
+          key: geolite2-dbs-${{ env.week }}
+          restore-keys: |
+            geolite2-dbs-
+
+      - name: Run Processor Script
+        env:
+          ZX_SECRET: ${{ secrets.ZX_SECRET }}
+        run: python processor.py
+
+      - name: Commit and Push
+        run: |
+          git config --local user.email "actions@github.com"
+          git config --local user.name "ZX Auto Processor"
+          # تغییر مسیر پوشه به sub و اضافه شدن هر دو دیتابیس
+          git add sub/ GeoLite2-City.mmdb GeoLite2-ASN.mmdb README.md
+          git commit -m "🚀 Auto-update: Processed, deduplicated & structured" || echo "No changes to commit"
+          git push
