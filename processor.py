@@ -32,8 +32,8 @@ if os.environ.get('ZX_SECRET') != EXPECTED_SECRET:
     sys.exit(1)
 
 # ================= Remark Settings =================
-REMARK_SUFFIX = "Curated by @ZXprompt"
-STARTING_ID = 100 
+REMARK_SUFFIX = "By VPNineh"
+STARTING_ID = 1 
 # =================================================
 
 flag_cache = {}
