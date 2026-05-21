@@ -3,7 +3,7 @@ name: ZX Config Processor
 on:
   schedule:
     - cron: '0 * * * *'
-  workflow_dispatch:
+  workflow_dispatch: # قابلیت اجرای دستی با دکمه Run workflow
 
 jobs:
   build-and-process:
@@ -41,6 +41,7 @@ jobs:
 
       - name: Run Processor Script
         env:
+          # فراخوانی قفل امنیتی از تنظیمات Secrets گیت‌هاب
           ZX_SECRET: ${{ secrets.ZX_SECRET }}
         run: python processor.py
 
@@ -48,7 +49,12 @@ jobs:
         run: |
           git config --local user.email "actions@github.com"
           git config --local user.name "ZX Auto Processor"
-          # تغییر مسیر پوشه به sub و اضافه شدن هر دو دیتابیس
-          git add sub/ GeoLite2-City.mmdb GeoLite2-ASN.mmdb README.md
+          
+          # حذف دیتابیس‌های سنگین از تاریخچه گیت برای جلوگیری از خطای حجم گیت‌هاب
+          git rm -r --cached *.mmdb || true
+          
+          # آپلود پوشه ساب‌ها و فایل آمار به ریپازیتوری
+          git add sub/ README.md
+          
           git commit -m "🚀 Auto-update: Processed, deduplicated & structured" || echo "No changes to commit"
           git push
