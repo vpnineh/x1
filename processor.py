@@ -14,11 +14,10 @@ import geoip2.database
 
 # ================= Configuration =================
 INPUT_FILE = 'list.conf'
-OUTPUT_DIR = 'sub' # تغییر نام پوشه اصلی به sub
+OUTPUT_DIR = 'sub' 
 GEO_CITY_PATH = 'GeoLite2-City.mmdb'
 GEO_ASN_PATH = 'GeoLite2-ASN.mmdb'
 
-# لینک‌های جدید، مستقیم و سالم دیتابیس از ریلیز گیت‌هاب
 GEO_CITY_URL = "https://github.com/P3TERX/GeoLite.mmdb/releases/latest/download/GeoLite2-City.mmdb"
 GEO_ASN_URL = "https://github.com/P3TERX/GeoLite.mmdb/releases/latest/download/GeoLite2-ASN.mmdb"
 MAX_WORKERS = 30 
@@ -39,17 +38,19 @@ STARTING_ID = 1
 flag_cache = {}
 
 def get_flag(country_iso_code):
-    if not country_iso_code: return "🏳️"
+    if not country_iso_code or country_iso_code == 'UNK': return "🏳️"
     if country_iso_code in flag_cache: return flag_cache[country_iso_code]
-    flag = chr(ord(country_iso_code[0]) + 127397) + chr(ord(country_iso_code[1]) + 127397)
-    flag_cache[country_iso_code] = flag
-    return flag
+    try:
+        flag = chr(ord(country_iso_code[0]) + 127397) + chr(ord(country_iso_code[1]) + 127397)
+        flag_cache[country_iso_code] = flag
+        return flag
+    except:
+        return "🏳️"
 
 def download_geo_db():
     dbs = {GEO_CITY_PATH: GEO_CITY_URL, GEO_ASN_PATH: GEO_ASN_URL}
     for path, url in dbs.items():
         if os.path.exists(path):
-            # بررسی اینکه فایل بیشتر از 1 مگابایت باشد (فایل 14 بایتی خراب را رد کند)
             if os.path.getsize(path) > 1024 * 1024 and (time.time() - os.path.getmtime(path)) < 7 * 86400:
                 print(f"✅ {path} loaded from cache.")
                 continue
@@ -58,8 +59,7 @@ def download_geo_db():
 
         print(f"📥 Downloading fresh {path}...")
         try:
-            headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'}
-            # اضافه شدن allow_redirects برای پشتیبانی از لینک‌های ریلیز گیت‌هاب
+            headers = {'User-Agent': 'Mozilla/5.0'}
             response = requests.get(url, headers=headers, stream=True, allow_redirects=True)
             total_size = int(response.headers.get('content-length', 0))
             
@@ -70,7 +70,6 @@ def download_geo_db():
                     size = file.write(data)
                     bar.update(size)
                     
-            # بعد از دانلود بررسی میکند که فایل واقعا دانلود شده باشد و ارور 404 نباشد
             if os.path.getsize(path) < 1024 * 1024:
                 print(f"❌ Error: Downloaded file {path} is too small. Deleting it.")
                 os.remove(path)
@@ -100,7 +99,7 @@ def fetch_sub_links(url):
     return []
 
 def get_geo(host, city_reader, asn_reader):
-    if not host: return {'country': 'Unknown', 'flag': '🏳️', 'datacenter': 'Unknown'}
+    if not host: return {'country': 'Unknown', 'iso_code': 'UNK', 'flag': '🏳️', 'datacenter': 'Unknown'}
     try:
         ip = host
         if not re.match(r"^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$", host):
@@ -110,9 +109,9 @@ def get_geo(host, city_reader, asn_reader):
         try:
             city_res = city_reader.city(ip)
             country_name = city_res.country.name if city_res.country.name else 'Unknown'
-            iso_code = city_res.country.iso_code
+            iso_code = city_res.country.iso_code if city_res.country.iso_code else 'UNK'
         except:
-            country_name, iso_code = 'Unknown', None
+            country_name, iso_code = 'Unknown', 'UNK'
             
         try:
             asn_res = asn_reader.asn(ip)
@@ -122,11 +121,12 @@ def get_geo(host, city_reader, asn_reader):
             
         return {
             'country': country_name.replace(' ', '_'), 
+            'iso_code': iso_code,
             'flag': get_flag(iso_code),
-            'datacenter': re.sub(r'[^A-Za-z0-9_]', '', datacenter)
+            'datacenter': re.sub(r'[^A-Za-z0-9_ -]', '', datacenter).strip()
         }
     except:
-        return {'country': 'Unknown', 'flag': '🏳️', 'datacenter': 'Unknown'}
+        return {'country': 'Unknown', 'iso_code': 'UNK', 'flag': '🏳️', 'datacenter': 'Unknown'}
 
 def process_config(link, city_reader, asn_reader):
     if not link: return None
@@ -171,7 +171,15 @@ def process_config(link, city_reader, asn_reader):
 
 def format_remark(uid, conf_data):
     geo = conf_data['geo']
-    base_remark = f"{uid} - {conf_data['type_name']} - {geo['flag']} {geo['country']} | {REMARK_SUFFIX}"
+    datacenter = geo['datacenter']
+    iso_code = geo['iso_code']
+    
+    # اگر دیتاسنتر پیدا نشد، برای زیبایی نام پروتکل را جایگزین آن می‌کنیم
+    if not datacenter or datacenter == 'Unknown':
+        datacenter = conf_data['type_name']
+        
+    # فرمت جدید: 1. Datacenter Name - 🇸🇬 SG | By VPNineh
+    base_remark = f"{uid}. {datacenter} - {geo['flag']} {iso_code} | {REMARK_SUFFIX}"
     
     if conf_data['is_vmess']:
         conf = conf_data['raw']
@@ -194,7 +202,6 @@ def save_to_file(filepath, lines, to_base64=False):
 
 def generate_readme(total_configs, by_protocol):
     now = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
-    
     github_repo_env = os.environ.get('GITHUB_REPOSITORY', 'YourUsername/YourRepo')
     base_raw_url = f"https://raw.githubusercontent.com/{github_repo_env}/main/{OUTPUT_DIR}"
     
@@ -264,9 +271,10 @@ def main():
         datacenter = conf['geo']['datacenter']
 
         all_links.append(final_link)
+        # پوشه‌بندی همچنان با نام کامل کشور انجام می‌شود تا مرتب بماند
         by_country[country].append(final_link)
         by_protocol[protocol].append(final_link)
-        if datacenter != 'Unknown':
+        if datacenter and datacenter != 'Unknown':
             by_datacenter[datacenter].append(final_link)
             
         current_id += 1
