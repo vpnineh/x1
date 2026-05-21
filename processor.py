@@ -17,8 +17,10 @@ INPUT_FILE = 'list.conf'
 OUTPUT_DIR = 'sub' # تغییر نام پوشه اصلی به sub
 GEO_CITY_PATH = 'GeoLite2-City.mmdb'
 GEO_ASN_PATH = 'GeoLite2-ASN.mmdb'
-GEO_CITY_URL = "https://raw.githubusercontent.com/P3TERX/GeoLite.mmdb/download/geoip/GeoLite2-City.mmdb"
-GEO_ASN_URL = "https://raw.githubusercontent.com/P3TERX/GeoLite.mmdb/download/geoip/GeoLite2-ASN.mmdb"
+
+# لینک‌های جدید، مستقیم و سالم دیتابیس از ریلیز گیت‌هاب
+GEO_CITY_URL = "https://github.com/P3TERX/GeoLite.mmdb/releases/latest/download/GeoLite2-City.mmdb"
+GEO_ASN_URL = "https://github.com/P3TERX/GeoLite.mmdb/releases/latest/download/GeoLite2-ASN.mmdb"
 MAX_WORKERS = 30 
 
 # ================= Security Lock =================
@@ -44,24 +46,36 @@ def get_flag(country_iso_code):
     return flag
 
 def download_geo_db():
-    # دانلود دیتابیس شهر و دیتاسنتر (ASN)
     dbs = {GEO_CITY_PATH: GEO_CITY_URL, GEO_ASN_PATH: GEO_ASN_URL}
     for path, url in dbs.items():
         if os.path.exists(path):
-            if (time.time() - os.path.getmtime(path)) < 7 * 86400:
+            # بررسی اینکه فایل بیشتر از 1 مگابایت باشد (فایل 14 بایتی خراب را رد کند)
+            if os.path.getsize(path) > 1024 * 1024 and (time.time() - os.path.getmtime(path)) < 7 * 86400:
                 print(f"✅ {path} loaded from cache.")
                 continue
+            else:
+                print(f"⚠️ {path} is invalid or old. Re-downloading...")
 
         print(f"📥 Downloading fresh {path}...")
         try:
-            response = requests.get(url, stream=True)
+            headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'}
+            # اضافه شدن allow_redirects برای پشتیبانی از لینک‌های ریلیز گیت‌هاب
+            response = requests.get(url, headers=headers, stream=True, allow_redirects=True)
             total_size = int(response.headers.get('content-length', 0))
+            
             with open(path, 'wb') as file, tqdm(
                 desc=f"GEO DB ({path[:10]})", total=total_size, unit='iB', unit_scale=True, unit_divisor=1024
             ) as bar:
                 for data in response.iter_content(chunk_size=1024):
                     size = file.write(data)
                     bar.update(size)
+                    
+            # بعد از دانلود بررسی میکند که فایل واقعا دانلود شده باشد و ارور 404 نباشد
+            if os.path.getsize(path) < 1024 * 1024:
+                print(f"❌ Error: Downloaded file {path} is too small. Deleting it.")
+                os.remove(path)
+                sys.exit(1)
+                
         except Exception as e:
             print(f"❌ Failed to download {path}: {e}")
             sys.exit(1)
@@ -93,7 +107,6 @@ def get_geo(host, city_reader, asn_reader):
              import socket
              ip = socket.gethostbyname(host)
              
-        # دریافت لوکیشن
         try:
             city_res = city_reader.city(ip)
             country_name = city_res.country.name if city_res.country.name else 'Unknown'
@@ -101,7 +114,6 @@ def get_geo(host, city_reader, asn_reader):
         except:
             country_name, iso_code = 'Unknown', None
             
-        # دریافت دیتاسنتر
         try:
             asn_res = asn_reader.asn(ip)
             datacenter = asn_res.autonomous_system_organization if asn_res.autonomous_system_organization else 'Unknown'
@@ -111,7 +123,7 @@ def get_geo(host, city_reader, asn_reader):
         return {
             'country': country_name.replace(' ', '_'), 
             'flag': get_flag(iso_code),
-            'datacenter': re.sub(r'[^A-Za-z0-9_]', '', datacenter) # پاکسازی نام دیتاسنتر برای فولدر
+            'datacenter': re.sub(r'[^A-Za-z0-9_]', '', datacenter)
         }
     except:
         return {'country': 'Unknown', 'flag': '🏳️', 'datacenter': 'Unknown'}
@@ -183,7 +195,6 @@ def save_to_file(filepath, lines, to_base64=False):
 def generate_readme(total_configs, by_protocol):
     now = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
     
-    # دریافت خودکار Username/Repo از محیط گیت‌هاب (اگر محلی اجرا شود، لینک پیش‌فرض می‌گذارد)
     github_repo_env = os.environ.get('GITHUB_REPOSITORY', 'YourUsername/YourRepo')
     base_raw_url = f"https://raw.githubusercontent.com/{github_repo_env}/main/{OUTPUT_DIR}"
     
@@ -262,22 +273,18 @@ def main():
 
     print("📁 Saving categorized output files...")
     
-    # 1. فایل‌های all (بدون پسوند)
     save_to_file(f"{OUTPUT_DIR}/normal/all", all_links)
     save_to_file(f"{OUTPUT_DIR}/base64/all", all_links, to_base64=True)
 
-    # 2. تفکیک لوکیشن
     for country, links in by_country.items():
         save_to_file(f"{OUTPUT_DIR}/normal/Location/{country}", links)
         save_to_file(f"{OUTPUT_DIR}/base64/Location/{country}", links, to_base64=True)
 
-    # 3. تفکیک دیتاسنتر
     for dc, links in by_datacenter.items():
         if dc:
             save_to_file(f"{OUTPUT_DIR}/normal/Datacenter/{dc}", links)
             save_to_file(f"{OUTPUT_DIR}/base64/Datacenter/{dc}", links, to_base64=True)
 
-    # 4. تفکیک پروتکل
     for proto, links in by_protocol.items():
         save_to_file(f"{OUTPUT_DIR}/normal/Protocol/{proto}", links)
         save_to_file(f"{OUTPUT_DIR}/base64/Protocol/{proto}", links, to_base64=True)
