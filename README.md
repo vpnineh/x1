@@ -3,7 +3,7 @@
 
 ## 🇬🇧 Free VPN Subscriptions
 > Automatically fetched, deeply deduplicated, and categorized based on GeoIP.
-> **Last Update:** `2026-05-22 14:47:24 UTC`
+> **Last Update:** `2026-05-22 17:11:13 UTC`
 > **Total Active Configs:** `187`
 
 ### 📊 Statistics
