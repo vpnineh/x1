@@ -3,14 +3,14 @@
 
 ## 🇬🇧 Free VPN Subscriptions
 > Automatically fetched, deeply deduplicated, and categorized based on GeoIP.
-> **Last Update:** `2026-05-22 11:47:57 UTC`
+> **Last Update:** `2026-05-22 14:47:24 UTC`
 > **Total Active Configs:** `187`
 
 ### 📊 Statistics
-- **Trojan**: 18
 - **Vless**: 117
-- **Ss**: 37
 - **Vmess**: 14
+- **Trojan**: 18
+- **Ss**: 37
 - **Wireguard**: 1
 
 ### 🔗 Main Links (Import these to your client)
