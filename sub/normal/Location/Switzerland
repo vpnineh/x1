@@ -1,1 +1,2 @@
-vless://monacoVPN@83.228.228.44:22?type=tcp&encryption=none&path=/@monacoVPN@monacoVPN@monacoVPN@monacoVPN&headerType=http&security=none#4.%20Infomaniak%20Network%20SA%20-%20%F0%9F%87%A8%F0%9F%87%AD%20CH%20%7C%20By%20VPNineh
+trojan://humanity@185.18.250.245:443?allowInsecure=1&host=www.calmlunch.com&path=%2Fassignment&sni=www.calmlunch.com&type=ws#85.%20Cloudflare%20London%20LLC%20-%20%F0%9F%87%A8%F0%9F%87%AD%20CH%20%7C%20By%20VPNineh
+trojan://humanity@185.18.250.252:443?security=tls&sni=www.creationlong.org&alpn=h2%2Chttp%2F1.1&fp=chrome&type=ws&host=www.creationlong.org&path=%2Fassignment#90.%20Cloudflare%20London%20LLC%20-%20%F0%9F%87%A8%F0%9F%87%AD%20CH%20%7C%20By%20VPNineh
