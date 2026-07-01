@@ -3,13 +3,13 @@
 
 ## 🇬🇧 Free VPN Subscriptions
 > Automatically fetched, deeply deduplicated, and categorized based on GeoIP.
-> **Last Update:** `2026-07-01 20:48:30 UTC`
+> **Last Update:** `2026-07-01 22:20:26 UTC`
 > **Total Active Configs:** `89`
 
 ### 📊 Statistics
-- **Trojan**: 11
-- **Vmess**: 10
 - **Ss**: 12
+- **Vmess**: 10
+- **Trojan**: 11
 - **Vless**: 56
 
 ### 🔗 Main Links (Import these to your client)
