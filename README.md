@@ -3,14 +3,14 @@
 
 ## 🇬🇧 Free VPN Subscriptions
 > Automatically fetched, deeply deduplicated, and categorized based on GeoIP.
-> **Last Update:** `2026-08-20 05:33:53 UTC`
+> **Last Update:** `2026-08-20 06:51:40 UTC`
 > **Total Active Configs:** `103`
 
 ### 📊 Statistics
 - **Vless**: 65
+- **Ss**: 22
 - **Vmess**: 11
 - **Trojan**: 5
-- **Ss**: 22
 
 ### 🔗 Main Links (Import these to your client)
 * **Mix All (Base64):** `https://raw.githubusercontent.com/vpnineh/x1/main/sub/base64/all`
