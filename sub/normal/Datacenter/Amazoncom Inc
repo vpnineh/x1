@@ -1,3 +1,1 @@
-trojan://telegram-id-directvpn@63.184.57.98:22223?security=tls&alpn=http/1.1&headerType=none&type=tcp&sni=trojan.burgerip.co.uk#39.%20Amazoncom%20Inc%20-%20%F0%9F%87%A9%F0%9F%87%AA%20DE%20%7C%20By%20VPNineh
-trojan://telegram-id-directvpn@63.176.115.85:22223?security=tls&alpn=http/1.1&headerType=none&type=tcp&sni=trojan.burgerip.co.uk#46.%20Amazoncom%20Inc%20-%20%F0%9F%87%A9%F0%9F%87%AA%20DE%20%7C%20By%20VPNineh
-trojan://telegram-id-privatevpns@63.176.115.85:22222?security=tls&alpn=http/1.1&headerType=none&type=tcp&sni=trojan.burgerip.co.uk#51.%20Amazoncom%20Inc%20-%20%F0%9F%87%A9%F0%9F%87%AA%20DE%20%7C%20By%20VPNineh
+vless://e4514801-0d5a-42ba-869f-39bd605aef9e@18.130.61.248:22224?encryption=none&security=none&type=tcp#18.%20Amazoncom%20Inc%20-%20%F0%9F%87%AC%F0%9F%87%A7%20GB%20%7C%20By%20VPNineh
